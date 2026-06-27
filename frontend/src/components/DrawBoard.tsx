@@ -1,5 +1,6 @@
 interface DrawBoardProps {
-    board: string[][];
+    board: string[][]
+    onMove: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void
 }
 
 const CELL_SIZE = 64
@@ -24,18 +25,69 @@ const getPieceImage = (char: string) => {
     }
 }
 
-const DrawBoard = ({ board }: DrawBoardProps) => {
+
+const DrawBoard = ({ board, onMove }: DrawBoardProps) => {
+    const handleDragStart = (e: React.DragEvent, row: number, col: number) => {
+        e.dataTransfer.setData("text/plain", JSON.stringify({ row, col }))
+    }
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault()
+    }
+
+    const handleDrop = (e: React.DragEvent, toRow: number, toCol: number) => {
+        e.preventDefault()
+        try {
+            const data = e.dataTransfer.getData("text/plain")
+            if (!data) return
+
+            const parsedObject = JSON.parse(data)
+            const fromRow = parsedObject.row
+            const fromCol = parsedObject.col
+
+            // Can't drop a piece onto the same square
+            if (fromRow === toRow && fromCol === toCol) return
+            
+            onMove(fromRow, fromCol, toRow, toCol)
+        } catch (err) {
+            console.error("Failed to parse drag data", err)
+        }
+    }
+
     return (
-        <div>
+        <div style={{ userSelect: "none" }}>
             {board.map((row, rowIndex) => (
                 <div key={rowIndex} style={{ display: "flex" }}>
-                    {row.map((cell, cellIndex) => (
-                        <div 
-                            key={cellIndex} 
-                            style={{ display: "flex", justifyContent: "center", alignItems: "center", width: CELL_SIZE, height: CELL_SIZE, border: "1px solid black" }}>
-                            {getPieceImage(cell) ? <img src={getPieceImage(cell)} alt={cell} style={{ width: "100%", height: "100%" }} /> : undefined}
-                        </div>
-                    ))}
+                    {row.map((cell, cellIndex) => {
+                        const imgSrc = getPieceImage(cell)
+                        const isLightSquare = (rowIndex + cellIndex) % 2 === 0
+
+                        return (
+                            <div 
+                                key={cellIndex} 
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, rowIndex, cellIndex)}
+                                style={{ 
+                                    display: "flex", 
+                                    justifyContent: "center", 
+                                    alignItems: "center", 
+                                    width: CELL_SIZE, 
+                                    height: CELL_SIZE, 
+                                    backgroundColor: isLightSquare ? "#eeeed2" : "#769656"
+                                }}
+                            >
+                                {imgSrc && (
+                                    <img 
+                                        src={imgSrc} 
+                                        alt={cell} 
+                                        draggable={true}
+                                        onDragStart={(e) => handleDragStart(e, rowIndex, cellIndex)}
+                                        style={{ width: "100%", height: "100%", cursor: "grab" }} 
+                                    />
+                                )}
+                            </div>
+                        )
+                    })}
                 </div>
             ))}
         </div>
