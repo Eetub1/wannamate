@@ -10,10 +10,10 @@ function App() {
     const [fen, setFen] = useState(START)
 
     // Testing the backend
-    useEffect(() => {
+    /*useEffect(() => {
         fetch("http://localhost:8000/api/health")
             .then(res => res.json())
-    }, [])
+    }, [])*/
 
 
     // Just a dummy move handler for testing that everything works.
@@ -35,11 +35,6 @@ function App() {
         const from_square = indicesToAlgebraic([fromRow, fromCol])
         const to_square = indicesToAlgebraic([toRow, toCol])
         const content = {fen, from_square, to_square}
-
-        console.log(from_square)
-        console.log(to_square)
-        console.log(content)
-        
 
         fetch("http://localhost:8000/api/move", {
             method: "POST",

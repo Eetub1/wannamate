@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -30,11 +30,19 @@ class MoveResponse(BaseModel):
 
 @app.post("/api/move", response_model=MoveResponse)
 def make_move(req: MoveRequest):
+    fen_parts = req.fen.split(" ")
+    fen_placement = fen_parts[0]
+    fen_tail = fen_parts[1:]
+    fen_tail = " ".join(fen_tail)
+    
+    try:
+        board = parse_fen(fen_placement)
+        board = apply_move(board, req.from_square, req.to_square) # Move should be validated before applying TODO
+        fen_placement = to_fen(board)
 
-    board = parse_fen(req.fen)
-    board = apply_move(board, req.from_square, req.to_square) # Move should be validated before applying TODO
-    fen = to_fen(board)
+        fen = fen_placement + " " + fen_tail
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-    # also right now the fen string only contains the placement. The other part needs to be dealt with too!
     # right now every move is true
     return MoveResponse(fen=fen, legal=True)
