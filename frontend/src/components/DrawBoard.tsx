@@ -43,6 +43,8 @@ const DrawBoard = ({ board, onMove, getValidSquares }: DrawBoardProps) => {
     }
 
     const handleDrop = (e: React.DragEvent, toRow: number, toCol: number) => {
+        setHighlightCells([])
+
         e.preventDefault()
         try {
             const data = e.dataTransfer.getData("text/plain")
@@ -66,15 +68,15 @@ const DrawBoard = ({ board, onMove, getValidSquares }: DrawBoardProps) => {
         <div style={{ userSelect: "none" }}>
             {board.map((row, rowIndex) => (
                 <div key={rowIndex} style={{ display: "flex" }}>
-                    {row.map((cell, cellIndex) => {
+                    {row.map((cell, colIndex) => {
                         const imgSrc = getPieceImage(cell)
-                        const isLightSquare = (rowIndex + cellIndex) % 2 === 0
+                        const isLightSquare = (rowIndex + colIndex) % 2 === 0
 
                         return (
-                            <div
-                                key={cellIndex} 
+                            <div className={highlightCells.some(([r, c]) => r === rowIndex && c === colIndex) ? "highlight" : ""}
+                                key={colIndex} 
                                 onDragOver={handleDragOver}
-                                onDrop={(e) => handleDrop(e, rowIndex, cellIndex)}
+                                onDrop={(e) => handleDrop(e, rowIndex, colIndex)}
                                 style={{ 
                                     display: "flex", 
                                     justifyContent: "center", 
@@ -89,7 +91,7 @@ const DrawBoard = ({ board, onMove, getValidSquares }: DrawBoardProps) => {
                                         src={imgSrc} 
                                         alt={cell} 
                                         draggable={true}
-                                        onDragStart={(e) => handleDragStart(e, rowIndex, cellIndex)}
+                                        onDragStart={(e) => handleDragStart(e, rowIndex, colIndex)}
                                         style={{ width: "100%", height: "100%", cursor: "grab" }} 
                                     />
                                 )}

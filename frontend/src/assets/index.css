@@ -1,0 +1,14 @@
+.highlight {
+    position: relative;
+    cursor: pointer;
+}
+
+.highlight::after {
+    content: "";
+    position: absolute;
+    width: 32%;
+    height: 32%;
+    border-radius: 50%;
+    background-color: rgba(20, 20, 20, 0.28);
+    pointer-events: none;
+}
