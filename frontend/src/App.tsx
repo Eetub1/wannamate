@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import DrawBoard from "./components/DrawBoard"
 import parseFen from "./utils/parseFen"
 import indicesToAlgebraic from "./utils/indicesToAlgebraic"
@@ -9,14 +9,6 @@ const START = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
 
 function App() {
     const [fen, setFen] = useState(START)
-
-    // Testing the backend
-    useEffect(() => {
-        fetch("http://localhost:8000/api/health")
-            .then(res => res.json())
-            .then(data => console.log(`Backend: ${data.status}`))
-    }, [])
-
 
     const handleMove = (fromRow: number, fromCol: number, toRow: number, toCol: number, promotion: string) => {
         const from_square = indicesToAlgebraic([fromRow, fromCol])

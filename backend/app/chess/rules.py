@@ -10,7 +10,12 @@ Key distinction this module enforces:
 
 from app.chess.board import apply_move, indices_to_algebraic, algebraic_to_indices
 from app.chess.moves import calculate_moves, is_position_inbounds, square_state, CellContentType
+from enum import Enum
 
+class GameState(Enum):
+    ONGOING = "ongoing"
+    CHECKMATE = "checkmate"
+    STALEMATE = "stalemate"
 
 def find_king(board: list[list[str]], is_white: bool) -> list[int]:
     """Locate the given side's king on the board.
@@ -140,3 +145,46 @@ def calculate_legal_moves(board: list[list[str]], position: str, is_whites_turn:
 
     all_moves = calculate_moves(board, position)
     return [move for move in all_moves if is_move_legal(board, position, move, is_white)]
+
+
+def is_stalemate_or_checkmate(board: list[list[str]], is_whites_turn: bool) -> GameState:
+    """Determine whether the side to move is checkmated, stalemated, or neither.
+
+    Checks whether the side to move has ANY legal move. If it does, the game is
+    ongoing. If it has none, the result depends on whether that side is in check:
+    no legal moves while in check is checkmate; no legal moves while not in check
+    is stalemate.
+
+    Important: `is_whites_turn` must be the side whose turn it is NOW — i.e. the
+    side that must respond, not the side that just moved. Callers processing a
+    move should pass this AFTER flipping the turn.
+
+    Args:
+        board: The current board (after the move has been applied).
+        is_whites_turn: True if it is white's turn to move.
+
+    Returns:
+        GameState.ONGOING if the side to move has at least one legal move,
+        GameState.CHECKMATE if it has none and is in check,
+        GameState.STALEMATE if it has none and is not in check.
+    """
+    # Does the side to move have any legal moves
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            content = board[i][j]
+            if not content:
+                continue
+
+            is_white_piece = content == content.upper()
+
+            # only consider pieces belonging to the side to move
+            if is_whites_turn == is_white_piece:
+                legal_moves = calculate_legal_moves(board, indices_to_algebraic([i, j]), is_whites_turn)
+                if legal_moves:
+                    return GameState.ONGOING
+
+    is_check = is_in_check(board, is_whites_turn)
+    if is_check:
+        return GameState.CHECKMATE
+    return GameState.STALEMATE
+
